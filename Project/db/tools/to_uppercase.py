@@ -1,4 +1,5 @@
 import sys
 
 if __name__ == "__main__":
-   print(list(map(lambda x:x.upper(),sys.argv[1:])))
+   result = " ".join(map(lambda x:x.upper(),sys.argv[1:]))
+   print(result)
