@@ -29,10 +29,13 @@ def run_script():
     content = request.get_json()
     id = content['id']
     filename = get_db().cursor().execute('select source_file_name from scripts where id=?', [id]).fetchone()[0]
+    # TODO: input1 hardcoded, needs to be fixed later
     input = content['inputs']['input1']
     source_file_path=os.path.join('../db/tools', filename)
-    output = subprocess.check_output("python " + source_file_path + " " + input, shell=True,universal_newlines=True)
-    return json.dumps(output)
+    command_args = ["python",source_file_path] + input.split()
+    status = subprocess.run(command_args, shell=True,universal_newlines=True, capture_output=True)
+    result = status.stdout if status.returncode == 0 else status.stderr
+    return json.dumps(result)
 
 def get_tools():
     cursor = get_db().cursor()
