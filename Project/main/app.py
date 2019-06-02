@@ -37,7 +37,7 @@ def run_script():
     result = status.stdout if status.returncode == 0 else status.stderr
     return json.dumps(result)
 
-def get_tools():
+def get_all_tools():
     cursor = get_db().cursor()
     # limit 10 could vary
     rows =  cursor.execute('select name,source_file_name,id from scripts limit 10').fetchall()
@@ -47,8 +47,15 @@ def get_tools():
             results.append({'name':row[0],'source_file_name':row[1].split('.')[0],'source_code':scriptfile.read(),'id':row[2]})
     return results
 
+@app.route('/tool/<int:id>')
+def get_tool(id):
+    cursor = get_db().cursor()
+    row =  cursor.execute('select name,source_file_name,id from scripts where id = ?',[id]).fetchone()
+    with open(os.path.join('../db/tools',row[1]), 'r') as scriptfile:
+        return json.dumps({'name':row[0],'source_file_name':row[1].split('.')[0],'source_code':scriptfile.read(),'id':row[2]})
+
 @app.route('/')
 @app.route('/index')
 def index():
-    tools=get_tools()
+    tools=get_all_tools()
     return json.dumps(tools)
