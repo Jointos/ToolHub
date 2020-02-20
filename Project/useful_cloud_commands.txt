@@ -1,0 +1,11 @@
+TODO:
+disallow unautenthicated .. for cloud run as soon as I realize how to make it work.
+
+
+
+######## Create subscription with the service account
+
+gcloud pubsub subscriptions create myRunSubscription --topic myRunTopic \
+   --push-endpoint=SERVICE-URL/ \
+   --push-auth-service-account=cloud-run-pubsub-invoker@PROJECT-ID.iam.gserviceaccount.com
+   [--message-retention-duration=MESSAGE_RETENTION_DURATION] # must have if you want failures not to last 7 days looping around
