@@ -17,6 +17,7 @@ import base64
 import os
 import sys
 import json
+import subprocess
 from flask import Flask, request
 from google.cloud import storage
 
@@ -65,6 +66,8 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 FILE_NAME="script"
 FILE_NAME_WITH_EXT = FILE_NAME + ".py"
 DESTIONATION_BUCKET_NAME = "toolhub_executables"
+SCRIPT_REQUIREMENTS = "script_requirements.txt"
+DOWNLOAD_FOLDER = 'download'
 
 # [START run_pubsub_handler]
 @app.route('/', methods=['POST'])
@@ -84,9 +87,13 @@ def index():
 
   if isinstance(pubsub_message, dict) and 'data' in pubsub_message:
     metadata = json.loads(base64.b64decode(pubsub_message['data']).decode('utf-8').strip())
-    download_blob(metadata['bucket'], metadata['name'], FILE_NAME_WITH_EXT)
-    os.system(f'python -O -m PyInstaller --onefile {FILE_NAME_WITH_EXT}')
-    upload_blob(DESTIONATION_BUCKET_NAME, os.path.join("dist",FILE_NAME), metadata['name'])
+    download_blob(metadata['bucket'], metadata['name'], os.path.join(DOWNLOAD_FOLDER, FILE_NAME_WITH_EXT))
+    # TODO: IMPORTANT! --onefile option is slow, better to make it one folder!
+    subprocess.check_output(f'pipreqs --force --savepath {SCRIPT_REQUIREMENTS} {DOWNLOAD_FOLDER}', shell=True)
+    subprocess.check_output(f'pip install -r {SCRIPT_REQUIREMENTS}', shell=True,stderr=subprocess.STDOUT)
+    subprocess.check_output(f'python -O -m PyInstaller --onefile {os.path.join(DOWNLOAD_FOLDER, FILE_NAME_WITH_EXT)}', shell=True,stderr=subprocess.STDOUT)
+    script_name_without_ext = os.path.splitext(metadata['name'])[0]
+    upload_blob(DESTIONATION_BUCKET_NAME, os.path.join("dist",FILE_NAME), script_name_without_ext)
   # Flush the stdout to avoid log buffering.
   sys.stdout.flush()
 
