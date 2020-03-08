@@ -50,6 +50,7 @@ class Input:
 class HTTPSMessage:
     inputs: List[Input]
     executable_name: str
+    temporary_folder: str
 
 # TODO: move this into common library
 def log(severity: Severities, message: str):
@@ -74,7 +75,7 @@ NO_OUTPUT = 'Script did not have output result'
 
 # TODO: VERY IMPORTANT!!!! ONE CONTAINER CAN GHANDLE MULTIPLE REQUEST SO WHAT IF WE OVERWRITE THE INPUT AND EXEC FILE?
 # TODO:  VERY IMPORTANT!!!! ALSO EVERY WRITTEN FILE GOES TO IN MEMORY SPACE WHICH CAN COST MUCH
-# TODO:   VERY IMPORTANT!!!! NEED TO CLEAN UP FILES BECAUSE THEY CAN REMAIN BETWEEN INVOCATIONS!!! 
+# TODO:   VERY IMPORTANT!!!! NOT GOOD:NEED TO CLEAN UP FILES BECAUSE THEY CAN REMAIN BETWEEN INVOCATIONS!!! MULTIPLE INVOCATION CAN RIUN AT THE SAME TIME, NEED SOMETHINFG BETTER
 # [START run_pubsub_handler]
 @app.route('/', methods=['POST'])
 def index():
@@ -97,7 +98,7 @@ def index():
   # Download input files to exec folder
   for input in message.inputs:
     if input.type == 'file':
-      download_blob(TEMPORARY_SCRIPT_INPUTS_BUCKET_NAME, input.value, os.path.join(EXEC_FOLDER, ntpath.basename(str(input.value))))
+      download_blob(TEMPORARY_SCRIPT_INPUTS_BUCKET_NAME, os.path.join(message.temporary_folder, input.value), os.path.join(EXEC_FOLDER, ntpath.basename(str(input.value))))
   # Create the input file for the script TODO: IMPORTANT!!! this should be reworked to just passing the parameters in the stdin of script 
   inputs_with_only_values = json.dumps({input.name: input.value for input in message.inputs})
   with open(os.path.join(EXEC_FOLDER, "input"),"w") as input_file:

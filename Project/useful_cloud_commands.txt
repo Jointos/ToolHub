@@ -3,9 +3,16 @@ disallow unautenthicated .. for cloud run as soon as I realize how to make it wo
 
 
 
-######## Create subscription with the service account
+### Create subscription with the service account
 
 gcloud pubsub subscriptions create myRunSubscription --topic myRunTopic \
    --push-endpoint=SERVICE-URL/ \
    --push-auth-service-account=cloud-run-pubsub-invoker@PROJECT-ID.iam.gserviceaccount.com
    [--message-retention-duration=MESSAGE_RETENTION_DURATION] # must have if you want failures not to last 7 days looping around
+
+
+### Build new container
+
+gcloud builds submit --tag gcr.io/<PROJECT_ID>/<IMAGE_NAME>
+
+gcloud run deploy <SERVICE_NAME> --image gcr.io/<PROJECT_ID>/<IMAGE_NAME>
