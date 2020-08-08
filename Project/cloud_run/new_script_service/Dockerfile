@@ -16,7 +16,7 @@
 
 # Use the official Python image.
 # https://hub.docker.com/_/python
-FROM python:3.8
+FROM python:3.7
 
 # Copy application dependency manifests to the container image.
 # Copying this separately prevents re-running pip install on every code change.
@@ -24,7 +24,8 @@ COPY requirements.txt ./
 
 # Install production dependencies.
 RUN pip install -r requirements.txt
-
+# A lot of Python packages are using ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg
 # Copy local code to the container image.
 ENV APP_HOME /app
 WORKDIR $APP_HOME

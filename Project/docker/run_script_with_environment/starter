@@ -1,1 +1,1 @@
-./bind/script
+cd bind; ./script
